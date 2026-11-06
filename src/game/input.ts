@@ -15,7 +15,11 @@ export const settings = {
   volume: 0.8,
   invertY: false,
   controls: "auto" as "auto" | "desktop" | "touch",
+  lowSpec: false,
 };
+
+/** Fired when graphics-affecting settings change so the 3D view can rebuild. */
+export const SETTINGS_EVENT = "game-settings-change";
 
 const KEY = "light-codes-settings";
 export function loadSettings() {

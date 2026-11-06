@@ -106,7 +106,8 @@ export function Overseer() {
     const m = game.monster;
     const t = st.clock.elapsedTime;
     root.current.position.set(m.x, 0, m.z);
-    root.current.rotation.y = m.yaw;
+    // The model is built facing +Z, while sim yaw points along -Z — flip it so it walks face-first.
+    root.current.rotation.y = m.yaw + Math.PI;
     const stride = m.stride * Math.PI;
     const moving = Math.min(1, m.speed / 2);
     legL.current.rotation.x = Math.sin(stride) * 0.45 * moving;
@@ -203,17 +204,13 @@ export function Overseer() {
           <mesh castShadow material={res.pipe}>
             <boxGeometry args={[0.72, 0.5, 0.5]} />
           </mesh>
-          <mesh position={[0, 0, -0.26]} material={res.screen}>
+          <mesh position={[0, 0, 0.26]} material={res.screen}>
             <planeGeometry args={[0.62, 0.4]} />
           </mesh>
-          <mesh position={[0, 0, -0.255]} rotation={[0, Math.PI, 0]}>
-            <planeGeometry args={[0.001, 0.001]} />
-            <meshBasicMaterial />
-          </mesh>
-          <mesh position={[0, 0.3, 0.1]} material={res.cable}>
+          <mesh position={[0, 0.3, -0.1]} material={res.cable}>
             <boxGeometry args={[0.4, 0.1, 0.3]} />
           </mesh>
-          <mesh ref={cone} position={[0, 0, -0.3]} geometry={res.coneGeo} material={res.coneMat} />
+          <mesh ref={cone} position={[0, 0, 0.3]} geometry={res.coneGeo} material={res.coneMat} />
         </group>
       </group>
     </group>
