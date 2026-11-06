@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { game, SLOTS, type Slot } from "./sim/game";
+import { game, SLOTS } from "./sim/game";
 import { ITEM_INFO, TAPES, ENDINGS, DEATHS } from "./sim/lore";
 import { input, look, settings, saveSettings, loadSettings, isTouchMode, SETTINGS_EVENT } from "./input";
 import { audio } from "./audio";
