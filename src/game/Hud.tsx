@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { game, SLOTS, type Slot } from "./sim/game";
 import { ITEM_INFO, TAPES, ENDINGS, DEATHS } from "./sim/lore";
-import { input, look, settings, saveSettings, loadSettings, isTouchMode } from "./input";
+import { input, look, settings, saveSettings, loadSettings, isTouchMode, SETTINGS_EVENT } from "./input";
 import { audio } from "./audio";
 import { ITEM_ART } from "./itemArt";
-import { SETTINGS_EVENT } from "./input";
 
 function snapshot() {
   const p = game.player;

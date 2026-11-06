@@ -1,10 +1,10 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, Vignette, ChromaticAberration, Noise } from "@react-three/postprocessing";
 import { BlendFunction, type ChromaticAberrationEffect } from "postprocessing";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { game } from "./sim/game";
-import { input, readMove } from "./input";
+import { input, readMove, settings, loadSettings, SETTINGS_EVENT } from "./input";
 import { audio } from "./audio";
 import { Level } from "./scene/Level";
 import { Lamps, LightPool } from "./scene/Lamps";
@@ -85,17 +85,27 @@ function Post() {
 }
 
 export function GameCanvas() {
+  const [low, setLow] = useState(() => {
+    loadSettings();
+    return settings.lowSpec;
+  });
+  useEffect(() => {
+    const on = () => setLow(settings.lowSpec);
+    window.addEventListener(SETTINGS_EVENT, on);
+    return () => window.removeEventListener(SETTINGS_EVENT, on);
+  }, []);
   return (
     <Canvas
-      shadows
-      dpr={[1, 1.5]}
+      key={low ? "low" : "high"}
+      shadows={!low}
+      dpr={low ? 0.6 : [1, 1.5]}
       camera={{ fov: 72, near: 0.05, far: 80 }}
-      gl={{ antialias: false, powerPreference: "high-performance" }}
+      gl={{ antialias: false, powerPreference: "high-performance", precision: low ? "mediump" : "highp" }}
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.1;
         scene.background = new THREE.Color("#050403");
-        scene.fog = new THREE.FogExp2("#070605", 0.055);
+        scene.fog = new THREE.FogExp2("#070605", low ? 0.07 : 0.055);
       }}
     >
       <ambientLight intensity={0.05} color="#8a7a66" />
@@ -116,7 +126,7 @@ export function GameCanvas() {
       <Items />
       <Flares />
       <Overseer />
-      <Post />
+      {!low && <Post />}
     </Canvas>
   );
 }
