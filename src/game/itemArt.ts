@@ -8,9 +8,8 @@ import bandage from "@/assets/items/bandage.jpg";
 import shard from "@/assets/items/shard.jpg";
 import card from "@/assets/items/card.jpg";
 import tape from "@/assets/items/tape.jpg";
-import nuke from "@/assets/items/nuke.jpg";
 import battery from "@/assets/items/battery.jpg";
 
-export const ITEM_ART: Record<ItemKind, string> = {
-  wrench, stungun, redFlare, whiteFlare, cortexin, bandage, shard, card, tape, nuke, battery,
+export const ITEM_ART: Partial<Record<ItemKind, string>> = {
+  wrench, stungun, redFlare, whiteFlare, cortexin, bandage, shard, card, tape, battery,
 };

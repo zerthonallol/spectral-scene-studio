@@ -3,16 +3,8 @@ import { game, SLOTS, type Slot } from "./sim/game";
 import { ITEM_INFO, TAPES, ENDINGS, DEATHS } from "./sim/lore";
 import { input, look, settings, saveSettings, loadSettings, isTouchMode } from "./input";
 import { audio } from "./audio";
-
-const SLOT_ICON: Record<Slot, string> = {
-  wrench: "🔧",
-  stungun: "⚡",
-  redFlare: "🔴",
-  whiteFlare: "⚪",
-  cortexin: "💉",
-  bandage: "🩹",
-  shard: "🔷",
-};
+import { ITEM_ART } from "./itemArt";
+import { SETTINGS_EVENT } from "./input";
 
 function snapshot() {
   const p = game.player;
@@ -183,9 +175,9 @@ export function Hud() {
                   title={ITEM_INFO[slot].name}
                   className={`hud-slot ${s.selected === slot ? "hud-slot-active" : ""} ${c ? "" : "opacity-35"}`}
                 >
-                  <span className="absolute left-1 top-0.5 text-[10px] text-hud-dim">{i + 1}</span>
-                  <span className="text-xl">{SLOT_ICON[slot]}</span>
-                  {slot !== "wrench" && <span className="absolute bottom-0.5 right-1 text-[10px]">{c}</span>}
+                  <span className="absolute left-1 top-0.5 z-10 text-[10px] text-hud-dim">{i + 1}</span>
+                  <img src={ITEM_ART[slot]} alt={ITEM_INFO[slot].name} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+                  {slot !== "wrench" && <span className="absolute bottom-0.5 right-1 z-10 text-[10px]">{c}</span>}
                 </button>
               );
             })}
@@ -306,6 +298,7 @@ function SettingsPanel({ onTouch }: { onTouch: (v: boolean) => void }) {
     audio.setVolume(settings.volume);
     onTouch(isTouchMode());
     force((n) => n + 1);
+    window.dispatchEvent(new Event(SETTINGS_EVENT));
   };
   return (
     <div className="hud-panel flex w-72 flex-col gap-3 text-xs">
@@ -323,6 +316,10 @@ function SettingsPanel({ onTouch }: { onTouch: (v: boolean) => void }) {
         <input type="checkbox" checked={settings.invertY} onChange={(e) => set(() => (settings.invertY = e.target.checked))} />
         Инвертировать ось Y
       </label>
+      <label className="flex items-start gap-2">
+        <input type="checkbox" checked={settings.lowSpec} onChange={(e) => set(() => (settings.lowSpec = e.target.checked))} />
+        <span>Оптимизация для слабых ПК<br /><span className="text-[10px] text-hud-dim">Без теней и эффектов, ниже разрешение — выше FPS.</span></span>
+      </label>
       <div className="flex flex-col gap-1">
         Управление
         <div className="flex gap-1">
@@ -337,12 +334,12 @@ function SettingsPanel({ onTouch }: { onTouch: (v: boolean) => void }) {
 }
 
 function Inventory({ s, onClose }: { s: Snap; onClose: () => void }) {
-  const rows: { name: string; hint: string; n: string }[] = [
-    ...SLOTS.map((slot, i) => ({ name: ITEM_INFO[slot].name, hint: ITEM_INFO[slot].hint, n: slot === "wrench" ? (s.counts[i] ? "есть" : "—") : String(s.counts[i] ?? 0) })),
-    { name: ITEM_INFO.card.name, hint: ITEM_INFO.card.hint, n: `${s.cards}/3` },
-    { name: ITEM_INFO.tape.name, hint: ITEM_INFO.tape.hint, n: `${s.tapes.length}/${TAPES.length}` },
-    { name: ITEM_INFO.nuke.name, hint: ITEM_INFO.nuke.hint, n: s.nuke ? "есть" : "—" },
-    { name: ITEM_INFO.battery.name, hint: ITEM_INFO.battery.hint, n: `${Math.round(s.battery)}%` },
+  const rows: { kind: keyof typeof ITEM_INFO; name: string; hint: string; n: string }[] = [
+    ...SLOTS.map((slot, i) => ({ kind: slot, name: ITEM_INFO[slot].name, hint: ITEM_INFO[slot].hint, n: slot === "wrench" ? (s.counts[i] ? "есть" : "—") : String(s.counts[i] ?? 0) })),
+    { kind: "card" as const, name: ITEM_INFO.card.name, hint: ITEM_INFO.card.hint, n: `${s.cards}/3` },
+    { kind: "tape" as const, name: ITEM_INFO.tape.name, hint: ITEM_INFO.tape.hint, n: `${s.tapes.length}/${TAPES.length}` },
+    { kind: "nuke" as const, name: ITEM_INFO.nuke.name, hint: ITEM_INFO.nuke.hint, n: s.nuke ? "есть" : "—" },
+    { kind: "battery" as const, name: ITEM_INFO.battery.name, hint: ITEM_INFO.battery.hint, n: `${Math.round(s.battery)}%` },
   ];
   return (
     <div className="hud-panel pointer-events-auto absolute right-4 top-32 max-h-[60vh] w-80 overflow-auto text-xs">
@@ -351,9 +348,14 @@ function Inventory({ s, onClose }: { s: Snap; onClose: () => void }) {
         <button className="hud-btn px-2 py-0.5" onClick={onClose}>✕</button>
       </div>
       {rows.map((r) => (
-        <div key={r.name} className="border-t border-border/40 py-1.5">
-          <div className="flex justify-between"><span>{r.name}</span><span className="text-primary">{r.n}</span></div>
-          <div className="text-[10px] text-hud-dim">{r.hint}</div>
+        <div key={r.name} className="flex gap-2 border-t border-border/40 py-1.5">
+          <div className="hud-slot shrink-0 overflow-hidden">
+            {ITEM_ART[r.kind] ? <img src={ITEM_ART[r.kind]} alt="" className="h-full w-full object-cover" loading="lazy" /> : <span className="text-xl">☢</span>}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex justify-between"><span>{r.name}</span><span className="text-primary">{r.n}</span></div>
+            <div className="text-[10px] text-hud-dim">{r.hint}</div>
+          </div>
         </div>
       ))}
       {s.tapes.length > 0 && (
